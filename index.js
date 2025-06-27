@@ -1,4 +1,4 @@
-const express = require('express'); 
+const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -28,52 +28,87 @@ async function run() {
 
 
     const coffeeCollection = client.db('coffeesDB').collection('coffees')
+    const userCollection = client.db('coffeesDB').collection('users')
 
 
-    app.get('/coffees', async(req,res)=>{
-        const result = await coffeeCollection.find().toArray();
-        res.send(result)
+    app.get('/coffees', async (req, res) => {
+      const result = await coffeeCollection.find().toArray();
+      res.send(result)
     })
 
-    app.get('/coffees/:id', async(req, res)=>{
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)};
-        const result = await coffeeCollection.findOne(query);
-        res.send(result)
+    app.get('/coffees/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await coffeeCollection.findOne(query);
+      res.send(result)
     })
 
-    app.post('/coffees', async(req,res)=>{
-        const newCoffee = req.body;
-        const result = await coffeeCollection.insertOne(newCoffee);
-        res.send(result);
+    app.post('/coffees', async (req, res) => {
+      const newCoffee = req.body;
+      const result = await coffeeCollection.insertOne(newCoffee);
+      res.send(result);
     })
 
 
-    app.put('/coffees/:id', async(req, res)=>{
-        const id = req.params.id;
-        const filter = {_id: new ObjectId(id)}
+    app.put('/coffees/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
 
-        const option = { upsert : true};
+      const option = { upsert: true };
 
-        const updatedCoffee = req.body;
-        const updatedDoc ={
-            $set: updatedCoffee
+      const updatedCoffee = req.body;
+      const updatedDoc = {
+        $set: updatedCoffee
+      }
+
+      const result = await coffeeCollection.updateOne(filter, updatedDoc, option);
+
+      res.send(result)
+
+    })
+
+
+
+    app.delete('/coffees/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await coffeeCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    // user related api 
+
+    app.get('/users', async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result)
+    })
+
+    app.post('/users', async (req, res) => {
+      const userProfile = req.body;
+      const result = await userCollection.insertOne(userProfile);
+      res.send(result)
+    })
+     
+
+    app.path('users', async(req, res)=>{
+      const {email, lastSignInInfo} = req.body
+      const filter = {email : email}
+      const updatedDoc = {
+        $set:{
+          lastSignInTime : lastSignInTime
         }
+      }
 
-        const result = await coffeeCollection.updateOne(filter, updatedDoc, option);
-
-        res.send(result)
-    
-    } )
-
-
-    app.delete('/coffees/:id', async(req, res)=>{
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await coffeeCollection.deleteOne(query);
-        res.send(result);
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result)
     })
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
 
+    })
 
 
 
@@ -93,10 +128,10 @@ run().catch(console.dir);
 
 
 
-app.get('/',(req,res)=>{
-    res.send('Coffee server is getting hotter')
+app.get('/', (req, res) => {
+  res.send('Coffee server is getting hotter')
 })
 
-app.listen(port, ()=>{
-    console.log(`Coffee server is running on port ${port}`);
+app.listen(port, () => {
+  console.log(`Coffee server is running on port ${port}`);
 })
